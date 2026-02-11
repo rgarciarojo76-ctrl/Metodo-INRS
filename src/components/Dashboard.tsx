@@ -171,5 +171,3 @@ export function Dashboard({ onNewEvaluation, onLoadEvaluation }: Props) {
     </div>
   );
 }
-
-
