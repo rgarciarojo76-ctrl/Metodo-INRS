@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Search, FlaskConical, Calendar, Building2, Trash2 } from 'lucide-react';
+import { Plus, Search, FlaskConical, Calendar, Building2, Trash2, AlertTriangle, ChevronRight } from 'lucide-react';
 import type { Evaluation } from '../types';
 import { db } from '../db';
 
@@ -36,111 +36,125 @@ export function Dashboard({ onNewEvaluation, onLoadEvaluation }: Props) {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-surface-900 via-surface-800 to-primary-900">
-      {/* Header */}
-      <header className="border-b border-white/10 backdrop-blur-sm bg-white/5">
-        <div className="max-w-6xl mx-auto px-6 py-6 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/25">
-            <FlaskConical className="w-6 h-6 text-white" />
+    <div className="min-h-screen bg-[var(--color-background)]">
+      {/* corporate header */}
+      <header className="bg-white border-b border-[var(--color-border)] sticky top-0 z-50 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 grid grid-cols-3 items-center">
+          {/* Left: Branding */}
+          <div className="flex items-center gap-3 justify-start">
+            <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
+              <FlaskConical className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex flex-col leading-tight">
+               <span className="text-[var(--color-primary)] font-bold text-sm tracking-wide">DIRECCIÓN TÉCNICA IA LAB</span>
+               <span className="text-[var(--color-text-main)] text-xs">Método INRS</span>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Método INRS</h1>
-            <p className="text-sm text-surface-400">Evaluación Simplificada de Riesgo Químico · NTP 937</p>
+
+          {/* Center: Warning Pill */}
+          <div className="flex justify-center">
+             <div className="status-disclaimer">
+                <AlertTriangle className="disclaimer-icon w-4 h-4" />
+                <div className="flex items-baseline gap-1">
+                   <span className="disclaimer-title">AVISO:</span>
+                   <span className="disclaimer-body">Apoyo técnico. Validar por técnico.</span>
+                </div>
+             </div>
+          </div>
+
+          {/* Right: Actions */}
+          <div className="flex justify-end">
           </div>
         </div>
       </header>
 
       {/* Main */}
-      <main className="max-w-6xl mx-auto px-6 py-12">
-        {/* Hero */}
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Panel de Evaluaciones
-          </h2>
-          <p className="text-surface-400 max-w-2xl mx-auto text-lg">
-            Evaluación cualitativa y simplificada del riesgo por inhalación y contacto dérmico
-            de agentes químicos según la metodología INRS.
+      <main className="max-w-7xl mx-auto px-6 py-12">
+        {/* Hero Section */}
+        <div className="text-center mb-12 space-y-4">
+          <h1 className="text-3xl font-bold text-[var(--color-text-main)]">
+            Identificación de productos químicos cancerígenos
+          </h1>
+          <p className="text-[var(--color-text-light)] max-w-2xl mx-auto text-lg">
+            Asistente virtual para la identificación y valoración de Agentes Cancerígenos, 
+            Mutágenos y Reprotóxicos según metodología INRS y normativa vigente.
           </p>
+          <div className="pt-4">
+            <button
+              onClick={onNewEvaluation}
+              className="inline-flex items-center gap-2 px-8 py-3 bg-[var(--color-primary)] text-white rounded-lg font-semibold hover:bg-[var(--color-primary-dark)] transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5"
+            >
+              <Plus className="w-5 h-5" />
+              Iniciar Nueva Evaluación
+            </button>
+          </div>
         </div>
 
         {/* Action bar */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <button
-            onClick={onNewEvaluation}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all shadow-lg shadow-primary-500/25 hover:shadow-primary-500/40 hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <Plus className="w-5 h-5" />
-            Nueva Evaluación
-          </button>
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-500" />
-            <input
-              type="text"
-              placeholder="Buscar por empresa o área..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white/10 border border-white/10 rounded-xl text-white placeholder-surface-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 transition-all backdrop-blur-sm"
-            />
-          </div>
+        <div className="flex flex-col sm:flex-row gap-4 mb-8 items-center justify-between">
+            <h2 className="text-xl font-semibold text-[var(--color-text-main)]">Evaluaciones Recientes</h2>
+            <div className="relative w-full sm:w-96">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-light)]" />
+                <input
+                type="text"
+                placeholder="Buscar por empresa o área..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-white border border-[var(--color-border)] rounded-lg text-sm text-[var(--color-text-main)] placeholder-[var(--color-text-light)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all"
+                />
+            </div>
         </div>
 
         {/* Evaluations grid */}
         {filtered.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-white/5 flex items-center justify-center">
-              <FlaskConical className="w-10 h-10 text-surface-600" />
+          <div className="card text-center py-16 flex flex-col items-center">
+            <div className="w-16 h-16 mb-4 rounded-full bg-[var(--color-background)] flex items-center justify-center">
+              <FlaskConical className="w-8 h-8 text-[var(--color-text-light)]" />
             </div>
-            <h3 className="text-xl font-semibold text-surface-400 mb-2">
-              {evaluations.length === 0 ? 'Sin evaluaciones' : 'Sin resultados'}
+            <h3 className="text-lg font-medium text-[var(--color-text-main)] mb-1">
+              {evaluations.length === 0 ? 'No hay evaluaciones' : 'No se encontraron resultados'}
             </h3>
-            <p className="text-surface-500 mb-6">
-              {evaluations.length === 0
-                ? 'Crea tu primera evaluación de riesgo químico.'
-                : 'No se encontraron evaluaciones con ese criterio.'}
+            <p className="text-[var(--color-text-light)] text-sm mb-6">
+              Comienza una nueva evaluación para analizar riesgos químicos.
             </p>
-            {evaluations.length === 0 && (
-              <button
-                onClick={onNewEvaluation}
-                className="px-6 py-3 bg-primary-600 text-white rounded-xl font-semibold hover:bg-primary-700 transition-colors"
-              >
-                Crear primera evaluación
-              </button>
-            )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map(ev => (
               <button
                 key={ev.id}
                 onClick={() => onLoadEvaluation(ev)}
-                className="group text-left p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-primary-500/30 transition-all backdrop-blur-sm hover:shadow-lg hover:shadow-primary-500/10"
+                className="card text-left hover:border-[var(--color-primary)]/50 hover:shadow-md transition-all group relative p-6 flex flex-col h-full"
               >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-2 text-sm text-surface-400">
-                    <Building2 className="w-4 h-4" />
-                    <span className="truncate">{ev.project.companyName || 'Sin nombre'}</span>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-[var(--color-text-light)]">
+                    <Building2 className="w-3 h-3" />
+                    <span className="truncate max-w-[150px]">{ev.project.companyName || 'Sin empresa'}</span>
                   </div>
-                  <button
+                  <div
+                    role="button"
                     onClick={(e) => handleDelete(ev.id, e)}
-                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-danger-500/20 text-surface-500 hover:text-danger-400 transition-all"
+                    className="p-1.5 rounded-md hover:bg-red-50 text-[var(--color-text-light)] hover:text-red-600 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
-                  </button>
+                  </div>
                 </div>
-                <h3 className="text-white font-semibold mb-1 truncate">
+                
+                <h3 className="text-lg font-bold text-[var(--color-text-main)] mb-2 line-clamp-2">
                   {ev.project.area || ev.project.workCenter || 'Evaluación sin título'}
                 </h3>
-                <div className="flex items-center gap-4 text-xs text-surface-500 mt-3">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5" />
-                    {ev.project.evaluationDate || '—'}
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full bg-primary-500/10 text-primary-400 font-medium">
-                    {ev.agents.length} agente{ev.agents.length !== 1 ? 's' : ''}
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full bg-surface-700/50 text-surface-400 font-medium">
-                    Paso {ev.currentStep}/7
-                  </span>
+                
+                <div className="mt-auto pt-4 flex items-center justify-between border-t border-[var(--color-border)]/50">
+                  <div className="flex items-center gap-3 text-xs text-[var(--color-text-light)]">
+                     <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {ev.project.evaluationDate || 'N/A'}
+                     </span>
+                     <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold">
+                        Step {ev.currentStep}/7
+                     </span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-[var(--color-text-light)] group-hover:text-[var(--color-primary)] transition-colors" />
                 </div>
               </button>
             ))}
@@ -149,11 +163,13 @@ export function Dashboard({ onNewEvaluation, onLoadEvaluation }: Props) {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 mt-12">
-        <div className="max-w-6xl mx-auto px-6 py-6 text-center text-sm text-surface-600">
-          Metodología basada en NTP 937 (INSHT) y ND 2233-200-05 (INRS)
+      <footer className="border-t border-[var(--color-border)] mt-auto bg-white">
+        <div className="max-w-6xl mx-auto px-6 py-6 text-center text-xs text-[var(--color-text-light)]">
+          © 2026 Dirección Técnica - Motor de Decisión CMR (RD 665/1997)
         </div>
       </footer>
     </div>
   );
 }
+
+

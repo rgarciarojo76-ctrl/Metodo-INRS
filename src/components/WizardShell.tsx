@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { FlaskConical, ChevronLeft, Save, X, Check } from 'lucide-react';
+import { FlaskConical, ChevronLeft, Save, X, Check, AlertTriangle } from 'lucide-react';
 import type { Evaluation, WizardStep } from '../types';
 import { WIZARD_STEPS } from '../types';
 import { db } from '../db';
@@ -60,52 +60,55 @@ export function WizardShell({ evaluation, onUpdate, onClose }: Props) {
 
   return (
     <div className="min-h-screen bg-surface-50 flex flex-col">
-      {/* Top bar */}
-      <header className="bg-white border-b border-surface-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      {/* corporate header */}
+      <header className="bg-white border-b border-[var(--color-border)] sticky top-0 z-50 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 grid grid-cols-3 items-center">
+          {/* Left: Branding & Back */}
+          <div className="flex items-center gap-3 justify-start">
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-surface-100 text-surface-500 transition-colors"
+              className="p-2 rounded-lg hover:bg-surface-100 text-[var(--color-text-light)] transition-colors"
               title="Volver al panel"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
-              <FlaskConical className="w-4 h-4 text-white" />
-            </div>
-            <div className="hidden sm:block">
-              <h1 className="text-sm font-semibold text-surface-800">Método INRS</h1>
-              <p className="text-xs text-surface-500">
-                {evaluation.project.companyName || 'Nueva evaluación'}
-              </p>
+            <div className="flex flex-col">
+               <span className="text-[var(--color-primary)] font-bold text-sm tracking-wide">DIRECCIÓN TÉCNICA IA LAB</span>
+               <span className="text-[var(--color-text-main)] text-xs">Método INRS - Riesgo Químico</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Center: Warning Pill */}
+          <div className="flex justify-center">
+             <div className="status-disclaimer">
+                <AlertTriangle className="disclaimer-icon w-4 h-4" />
+                <div className="flex items-baseline gap-1">
+                   <span className="disclaimer-title">AVISO:</span>
+                   <span className="disclaimer-body">Apoyo técnico (no sustitutivo). Validar por técnico.</span>
+                </div>
+             </div>
+          </div>
+
+          {/* Right: Actions */}
+          <div className="flex items-center gap-2 justify-end">
             <button
               onClick={handleSave}
               disabled={saving}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                 saved
-                  ? 'bg-success-100 text-success-700'
-                  : 'bg-primary-50 text-primary-700 hover:bg-primary-100'
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)]'
               }`}
             >
               {saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-              {saving ? 'Guardando...' : saved ? 'Guardado' : 'Guardar'}
-            </button>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-lg hover:bg-surface-100 text-surface-400 transition-colors"
-            >
-              <X className="w-5 h-5" />
+              {saving ? '...' : saved ? 'Guardado' : 'Guardar'}
             </button>
           </div>
         </div>
 
         {/* Progress bar */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-3 mt-2">
+
           <div className="flex items-center gap-1">
             {WIZARD_STEPS.map((ws) => (
               <button

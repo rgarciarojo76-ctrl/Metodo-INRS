@@ -48,6 +48,45 @@
 
 @layer base {
   body {
-    @apply bg-surface-50 text-surface-800 font-sans antialiased;
+    background-color: var(--color-background);
+    color: var(--color-text-main);
+    font-family: var(--font-family);
   }
+
+  :root {
+    /* IA LAB Corporate Standard */
+    --color-primary: #0099cc;       /* Cyan corporativo */
+    --color-primary-dark: #007bb5;  /* Hover/Active states */
+    --color-text-main: #4a4a4a;     /* Texto principal (Gris oscuro, no negro) */
+    --color-text-light: #888888;    /* Texto secundario */
+    --color-background: #f8f9fa;    /* Fondo general */
+    --color-white: #ffffff;         /* Fondo tarjetas */
+    --color-border: #e6e6e6;        /* Bordes sutiles */
+    
+    /* Fonts */
+    --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Warning Pill Badge */
+.status-disclaimer {
+    display: flex; align-items: center; gap: 0.75rem;
+    background: linear-gradient(to right, #fffbeb, #fefce8);
+    border: 1px solid #fde68a;
+    padding: 0.4rem 1rem;
+    border-radius: 99px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    max-width: fit-content;
+}
+.disclaimer-icon { color: #eab308; }
+.disclaimer-title { font-weight: 700; color: #b45309; font-size: 0.7rem; text-transform: uppercase; }
+.disclaimer-body { font-size: 0.75rem; color: #92400e; font-weight: 500; }
+
+/* Card Component */
+.card {
+    background: var(--color-white);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+    border: 1px solid var(--color-border);
 }
