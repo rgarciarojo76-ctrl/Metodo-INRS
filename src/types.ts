@@ -243,6 +243,11 @@ export interface Evaluation {
   currentStep: number;
   createdAt: string;
   updatedAt: string;
+  // Automation fields
+  mode?: 'manual' | 'auto';
+  fdsFiles?: FDSFile[];
+  extractedData?: ExtractedAgentData[];
+  autoStep?: AutoWizardStep;
 }
 
 // ─── Wizard State ────────────────────────────────────────
@@ -258,3 +263,102 @@ export const WIZARD_STEPS: { step: WizardStep; label: string }[] = [
   { step: 6, label: 'Riesgo Dérmico' },
   { step: 7, label: 'Resultados Finales' },
 ];
+
+// ─── FDS Automation Types ────────────────────────────────
+
+export type FDSStatus = 'pending' | 'ok' | 'old' | 'error';
+
+export interface FDSFile {
+  id: string;
+  fileName: string;
+  fileSize: number;          // bytes
+  file: File;                // the actual File object
+  status: FDSStatus;
+  statusMessage?: string;
+  extractedText?: string;    // full raw text from PDF
+  sections?: FDSSections;    // parsed REACH sections
+  addedAt: string;
+}
+
+export interface FDSSections {
+  section1?: string;  // Identification
+  section2?: string;  // Hazards
+  section3?: string;  // Composition
+  section8?: string;  // Exposure controls
+  section9?: string;  // Physical/chemical properties
+  section11?: string; // Toxicological information
+  section15?: string; // Regulatory
+}
+
+export type ConfidenceLevel = 'high' | 'medium' | 'low' | 'not_found';
+
+export interface FieldConfidence {
+  value: string | number | boolean | string[] | null;
+  confidence: number;       // 0-100
+  level: ConfidenceLevel;
+  source?: string;           // which section it was found in
+}
+
+export interface ExtractedAgentData {
+  fdsFileId: string;
+  fileName: string;
+  validated: boolean;
+
+  // Extracted fields with confidence
+  commercialName: FieldConfidence;
+  substanceName: FieldConfidence;
+  casNumber: FieldConfidence;
+  physicalState: FieldConfidence;
+  hPhrases: FieldConfidence;
+  rPhrases: FieldConfidence;
+  vlaED: FieldConfidence;
+  vlaEC: FieldConfidence;
+  boilingPoint: FieldConfidence;
+  vaporPressure: FieldConfidence;
+  hasFIV: FieldConfidence;
+  hasDermalToxicity: FieldConfidence;
+  solidForm: FieldConfidence;
+
+  // Auto-calculated
+  dangerClass?: number;
+  dangerScore?: number;
+}
+
+// ─── Auto Wizard ─────────────────────────────────────────
+
+export type AutoWizardStep = 1 | 2 | 3 | 4 | 5;
+
+export const AUTO_WIZARD_STEPS: { step: AutoWizardStep; label: string }[] = [
+  { step: 1, label: 'Datos Generales' },
+  { step: 2, label: 'Carga de FDS' },
+  { step: 3, label: 'Validación Datos' },
+  { step: 4, label: 'Datos Complementarios' },
+  { step: 5, label: 'Resultados & Informe' },
+];
+
+// ─── Gap Detection (Módulo B) ────────────────────────────
+
+export interface GapQuestion {
+  id: string;
+  agentId: string;
+  agentName: string;
+  field: string;
+  section: 'A' | 'B' | 'C' | 'D' | 'E';
+  sectionLabel: string;
+  question: string;
+  type: 'number' | 'select' | 'boolean' | 'number_unit';
+  options?: { value: string; label: string; description?: string }[];
+  unit?: string;
+  validation?: { min?: number; max?: number; message?: string };
+  helpText?: string;
+}
+
+export interface GroupedQuestions {
+  sections: {
+    id: string;
+    label: string;
+    questions: GapQuestion[];
+  }[];
+  totalQuestions: number;
+  estimatedMinutes: number;
+}

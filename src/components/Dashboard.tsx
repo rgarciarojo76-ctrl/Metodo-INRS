@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Plus, Search, FlaskConical, Calendar, Building2, Trash2, AlertTriangle, ChevronRight } from 'lucide-react';
+import { Plus, Search, FlaskConical, Calendar, Building2, Trash2, AlertTriangle, ChevronRight, Sparkles } from 'lucide-react';
 import type { Evaluation } from '../types';
 import { db } from '../db';
 
 interface Props {
-  onNewEvaluation: () => void;
+  onNewEvaluation: (mode?: 'manual' | 'auto') => void;
   onLoadEvaluation: (evaluation: Evaluation) => void;
 }
 
@@ -77,13 +77,20 @@ export function Dashboard({ onNewEvaluation, onLoadEvaluation }: Props) {
             Asistente virtual para la identificación y valoración de Agentes Cancerígenos, 
             Mutágenos y Reprotóxicos según metodología INRS y normativa vigente.
           </p>
-          <div className="pt-4">
+          <div className="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
             <button
-              onClick={onNewEvaluation}
+              onClick={() => onNewEvaluation('manual')}
               className="inline-flex items-center gap-2 px-8 py-3 bg-[var(--color-primary)] text-white rounded-lg font-semibold hover:bg-[var(--color-primary-dark)] transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5"
             >
               <Plus className="w-5 h-5" />
-              Iniciar Nueva Evaluación
+              Evaluación Manual
+            </button>
+            <button
+              onClick={() => onNewEvaluation('auto')}
+              className="inline-flex items-center gap-2 px-8 py-3 bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 hover:-translate-y-0.5"
+            >
+              <Sparkles className="w-5 h-5" />
+              Evaluación Automatizada (FDS)
             </button>
           </div>
         </div>

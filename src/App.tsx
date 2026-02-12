@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { WizardShell } from './components/WizardShell';
+import { AutoWizardShell } from './components/auto/AutoWizardShell';
 import type { Evaluation } from './types';
 
 function App() {
   const [activeEvaluation, setActiveEvaluation] = useState<Evaluation | null>(null);
 
-  const handleNewEvaluation = () => {
+  const handleNewEvaluation = (mode: 'manual' | 'auto' = 'manual') => {
     const now = new Date().toISOString();
     const evaluation: Evaluation = {
       project: {
@@ -28,6 +29,8 @@ function App() {
       currentStep: 1,
       createdAt: now,
       updatedAt: now,
+      mode,
+      autoStep: mode === 'auto' ? 1 : undefined,
     };
     setActiveEvaluation(evaluation);
   };
@@ -43,11 +46,19 @@ function App() {
   return (
     <div className="min-h-screen bg-surface-50">
       {activeEvaluation ? (
-        <WizardShell
-          evaluation={activeEvaluation}
-          onUpdate={setActiveEvaluation}
-          onClose={handleClose}
-        />
+        activeEvaluation.mode === 'auto' ? (
+          <AutoWizardShell
+            evaluation={activeEvaluation}
+            onUpdate={setActiveEvaluation}
+            onClose={handleClose}
+          />
+        ) : (
+          <WizardShell
+            evaluation={activeEvaluation}
+            onUpdate={setActiveEvaluation}
+            onClose={handleClose}
+          />
+        )
       ) : (
         <Dashboard
           onNewEvaluation={handleNewEvaluation}
