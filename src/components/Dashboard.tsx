@@ -12,14 +12,12 @@ export function Dashboard({ onNewEvaluation, onLoadEvaluation }: Props) {
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    loadEvaluations();
-  }, []);
-
   const loadEvaluations = async () => {
     const all = await db.evaluations.reverse().sortBy('updatedAt');
     setEvaluations(all);
   };
+
+  useEffect(() => { loadEvaluations(); }, []);
 
   const handleDelete = async (id: number | undefined, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -39,7 +37,7 @@ export function Dashboard({ onNewEvaluation, onLoadEvaluation }: Props) {
     <div className="min-h-screen bg-[var(--color-background)]">
       {/* corporate header */}
       <header className="bg-white border-b border-[var(--color-border)] sticky top-0 z-50 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 grid grid-cols-3 items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:grid sm:grid-cols-3 gap-2 sm:gap-0 items-center">
           {/* Left: Branding */}
           <div className="flex items-center gap-3 justify-start">
             <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
@@ -72,7 +70,7 @@ export function Dashboard({ onNewEvaluation, onLoadEvaluation }: Props) {
       <main className="max-w-7xl mx-auto px-6 py-12">
         {/* Hero Section */}
         <div className="text-center mb-12 space-y-4">
-          <h1 className="text-3xl font-bold text-[var(--color-text-main)]">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-text-main)]">
             Identificación de productos químicos cancerígenos
           </h1>
           <p className="text-[var(--color-text-light)] max-w-2xl mx-auto text-lg">

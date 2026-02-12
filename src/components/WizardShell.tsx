@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { FlaskConical, ChevronLeft, Save, X, Check, AlertTriangle } from 'lucide-react';
+import { validateStep } from '../validation';
+import { ChevronLeft, Save, Check, AlertTriangle } from 'lucide-react';
 import type { Evaluation, WizardStep } from '../types';
 import { WIZARD_STEPS } from '../types';
 import { db } from '../db';
@@ -22,9 +23,23 @@ export function WizardShell({ evaluation, onUpdate, onClose }: Props) {
   const [saved, setSaved] = useState(false);
   const step = evaluation.currentStep as WizardStep;
 
+  const [errors, setErrors] = useState<string[]>([]);
+
   const goTo = useCallback((newStep: WizardStep) => {
+    setErrors([]);
     onUpdate({ ...evaluation, currentStep: newStep, updatedAt: new Date().toISOString() });
   }, [evaluation, onUpdate]);
+
+  const handleNext = useCallback(() => {
+    if (step >= 7) return;
+    const result = validateStep(step, evaluation);
+    if (!result.valid) {
+      setErrors(result.errors);
+      return;
+    }
+    setErrors([]);
+    goTo((step + 1) as WizardStep);
+  }, [step, evaluation, goTo]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -62,7 +77,7 @@ export function WizardShell({ evaluation, onUpdate, onClose }: Props) {
     <div className="min-h-screen bg-surface-50 flex flex-col">
       {/* corporate header */}
       <header className="bg-white border-b border-[var(--color-border)] sticky top-0 z-50 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 grid grid-cols-3 items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:grid sm:grid-cols-3 gap-2 sm:gap-0 items-center">
           {/* Left: Branding & Back */}
           <div className="flex items-center gap-3 justify-start">
             <button
@@ -146,6 +161,23 @@ export function WizardShell({ evaluation, onUpdate, onClose }: Props) {
         </div>
       </header>
 
+      {/* Validation errors */}
+      {errors.length > 0 && (
+        <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 pt-4">
+          <div className="bg-danger-50 border border-danger-200 rounded-xl p-4">
+            <p className="text-sm font-bold text-danger-700 mb-2">Corrige los siguientes errores antes de continuar:</p>
+            <ul className="space-y-1">
+              {errors.map((err, i) => (
+                <li key={i} className="text-sm text-danger-600 flex items-start gap-2">
+                  <span className="mt-0.5">•</span>
+                  <span>{err}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
       {/* Step content */}
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-8">
         {renderStep()}
@@ -162,7 +194,7 @@ export function WizardShell({ evaluation, onUpdate, onClose }: Props) {
             ← Anterior
           </button>
           <button
-            onClick={() => step < 7 && goTo((step + 1) as WizardStep)}
+            onClick={handleNext}
             disabled={step >= 7}
             className="px-5 py-2.5 rounded-lg font-medium text-sm text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
           >
