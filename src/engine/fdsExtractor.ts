@@ -254,6 +254,26 @@ function extractSolidForm(sections: FDSSections, physState: string | null): Fiel
   return fc(null, 0);
 }
 
+function calculateDanger(hPhrases: string[], rPhrases: string[]): { dangerClass?: number; dangerScore?: number } {
+  let dangerClass: number | undefined;
+  let dangerScore: number | undefined;
+
+  const classes: number[] = [];
+  for (const h of hPhrases) {
+    const hTrimmed = h.trim();
+    if (H_PHRASE_DANGER_CLASS[hTrimmed] !== undefined) classes.push(H_PHRASE_DANGER_CLASS[hTrimmed]);
+  }
+  for (const r of rPhrases) {
+    const rTrimmed = r.trim().toUpperCase();
+    if (R_PHRASE_DANGER_CLASS[rTrimmed] !== undefined) classes.push(R_PHRASE_DANGER_CLASS[rTrimmed]);
+  }
+  if (classes.length > 0) {
+    dangerClass = Math.max(...classes);
+    dangerScore = DANGER_CLASS_SCORE[dangerClass] ?? 1;
+  }
+  return { dangerClass, dangerScore };
+}
+
 // ─── Main Extractor ──────────────────────────────────────
 
 export function extractFromFDS(
@@ -276,24 +296,7 @@ export function extractFromFDS(
   const hasDermalToxicity = extractDermalToxicity(sections, hPhrasesArr);
   const solidForm = extractSolidForm(sections, physicalState.value as string | null);
 
-  // Auto-calculate danger class from phrases
-  let dangerClass: number | undefined;
-  let dangerScore: number | undefined;
-
-  const classes: number[] = [];
-  for (const h of hPhrasesArr) {
-    const hTrimmed = h.trim();
-    if (H_PHRASE_DANGER_CLASS[hTrimmed] !== undefined) classes.push(H_PHRASE_DANGER_CLASS[hTrimmed]);
-  }
-  const rPhrasesArr = (Array.isArray(rPhrases.value) ? rPhrases.value : []) as string[];
-  for (const r of rPhrasesArr) {
-    const rTrimmed = r.trim().toUpperCase();
-    if (R_PHRASE_DANGER_CLASS[rTrimmed] !== undefined) classes.push(R_PHRASE_DANGER_CLASS[rTrimmed]);
-  }
-  if (classes.length > 0) {
-    dangerClass = Math.max(...classes);
-    dangerScore = DANGER_CLASS_SCORE[dangerClass] ?? 1;
-  }
+  const { dangerClass, dangerScore } = calculateDanger(hPhrasesArr, (Array.isArray(rPhrases.value) ? rPhrases.value : []) as string[]);
 
   return {
     fdsFileId,
@@ -315,4 +318,61 @@ export function extractFromFDS(
     dangerClass,
     dangerScore,
   };
+}
+
+/**
+ * AI-powered extraction using Gemini 1.5 Pro via Vercel API.
+ * Falls back to RegEx if API call fails.
+ */
+export async function extractFromFDSWithAI(
+  fdsFileId: string,
+  fileName: string,
+  text: string,
+  sections: FDSSections
+): Promise<ExtractedAgentData> {
+  try {
+    const response = await fetch('/api/extract-fds', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, fileName }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+
+    const aiData = await response.json();
+    
+    // Map AI response to FieldConfidence with high confidence
+    const fcAI = (val: any) => fc(val, 99, 'AI-Gemini');
+
+    const hPhrasesArr = Array.isArray(aiData.hPhrases) ? aiData.hPhrases : [];
+    const rPhrasesArr = Array.isArray(aiData.rPhrases) ? aiData.rPhrases : [];
+    const { dangerClass, dangerScore } = calculateDanger(hPhrasesArr, rPhrasesArr);
+
+    return {
+      fdsFileId,
+      fileName,
+      validated: false,
+      commercialName: fcAI(aiData.commercialName),
+      substanceName: fcAI(aiData.substanceName),
+      casNumber: fcAI(aiData.casNumber),
+      physicalState: fcAI(aiData.physicalState), // Should validate enum "liquid"/"solid"/"gas"
+      hPhrases: fcAI(hPhrasesArr),
+      rPhrases: fcAI(rPhrasesArr),
+      vlaED: fcAI(aiData.vlaED),
+      vlaEC: fcAI(aiData.vlaEC),
+      boilingPoint: fcAI(aiData.boilingPoint),
+      vaporPressure: fcAI(aiData.vaporPressure),
+      hasFIV: fcAI(aiData.hasFIV),
+      hasDermalToxicity: fcAI(aiData.hasDermalToxicity),
+      solidForm: fcAI(aiData.solidForm),
+      dangerClass,
+      dangerScore,
+    };
+
+  } catch (error) {
+    console.warn('AI Extraction failed, falling back to RegEx:', error);
+    return extractFromFDS(fdsFileId, fileName, sections);
+  }
 }

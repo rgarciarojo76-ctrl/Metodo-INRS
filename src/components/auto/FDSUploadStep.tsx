@@ -1,13 +1,15 @@
 import { useState, useCallback, useRef } from 'react';
 import { Upload, FileText, Eye, Trash2, AlertTriangle, CheckCircle, Loader2, XCircle } from 'lucide-react';
 import type { FDSFile, FDSStatus, Evaluation } from '../../types';
-import { identifySections, extractFromFDS } from '../../engine/fdsExtractor';
+import { identifySections, extractFromFDSWithAI } from '../../engine/fdsExtractor';
 
 // ─── PDF Text Extraction (pdf.js) ────────────────────────
 
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
 async function extractTextFromPDF(file: File): Promise<string> {
   const pdfjsLib = await import('pdfjs-dist');
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -158,19 +160,29 @@ export function FDSUploadStep({ evaluation, onUpdate }: Props) {
     window.open(url, '_blank');
   }, []);
 
-  const processAllFDS = useCallback(() => {
+  const processAllFDS = useCallback(async () => {
+    setProcessing(true);
     const readyFiles = files.filter(f => f.status === 'ok' || f.status === 'old');
-    const extracted = readyFiles.map(f => {
-      const sections = f.sections ?? identifySections(f.extractedText ?? '');
-      return extractFromFDS(f.id, f.fileName, sections);
-    });
-    onUpdate({
-      ...evaluation,
-      fdsFiles: files,
-      extractedData: extracted,
-      autoStep: 3 as const,
-      updatedAt: new Date().toISOString(),
-    });
+    
+    try {
+      const extracted = await Promise.all(readyFiles.map(async f => {
+        const sections = f.sections ?? identifySections(f.extractedText ?? '');
+        return await extractFromFDSWithAI(f.id, f.fileName, f.extractedText ?? '', sections);
+      }));
+
+      onUpdate({
+        ...evaluation,
+        fdsFiles: files,
+        extractedData: extracted,
+        autoStep: 3 as const,
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error('Error in batch processing:', err);
+      // Optional: show error toast
+    } finally {
+      setProcessing(false);
+    }
   }, [files, evaluation, onUpdate]);
 
   const readyCount = files.filter(f => f.status === 'ok' || f.status === 'old').length;
