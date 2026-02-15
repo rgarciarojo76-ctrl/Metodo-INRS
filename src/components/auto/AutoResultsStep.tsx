@@ -3,14 +3,15 @@
  * Runs the INRS calculation engines on the assembled ChemicalAgent data
  * and displays results using the same visualizations as the manual wizard.
  */
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { BarChart3, Shield, Droplets, Download } from 'lucide-react';
 import type { Evaluation, InhalationResult } from '../../types';
 import { computeHierarchy } from '../../engine/hierarchy';
 import { evaluateAllInhalation } from '../../engine/inhalation';
 import { evaluateDermalRisk } from '../../engine/dermal';
 import { generateAllAlerts } from '../../engine/alerts';
-import { generatePdfReport } from '../../pdf/generateReport';
+import { generatePdfReport, type ReportConfig } from '../../pdf/generateReport';
+import { ReportConfigModal } from '../ReportConfigModal';
 
 interface Props {
   evaluation: Evaluation;
@@ -18,6 +19,8 @@ interface Props {
 }
 
 export function AutoResultsStep({ evaluation, onUpdate }: Props) {
+  const [showReportConfig, setShowReportConfig] = useState(false);
+
   // Run all calculations on mount
   const computedEval = useMemo(() => {
     if (evaluation.agents.length === 0) return evaluation;
@@ -59,6 +62,15 @@ export function AutoResultsStep({ evaluation, onUpdate }: Props) {
     veryHigh: inhalationResults.filter((r: InhalationResult) => r.riskLevel === 'very_high').length,
   };
 
+  const hasFDS = useMemo(() => {
+    return (evaluation.fdsFiles?.length ?? 0) > 0;
+  }, [evaluation.fdsFiles]);
+
+  const handleGenerateReport = async (config: ReportConfig) => {
+    setShowReportConfig(false);
+    await generatePdfReport(computedEval, config);
+  };
+
   if (evaluation.agents.length === 0) {
     return (
       <div className="card p-8 text-center">
@@ -82,8 +94,8 @@ export function AutoResultsStep({ evaluation, onUpdate }: Props) {
           </p>
         </div>
         <button
-          onClick={() => generatePdfReport(computedEval)}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold bg-primary-600 text-white hover:bg-primary-700 shadow-sm"
+          onClick={() => setShowReportConfig(true)}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold bg-primary-600 text-white hover:bg-primary-700 shadow-sm transition-colors"
         >
           <Download className="h-4 w-4" /> Descargar PDF
         </button>
@@ -237,6 +249,12 @@ export function AutoResultsStep({ evaluation, onUpdate }: Props) {
           </div>
         </div>
       )}
+      <ReportConfigModal
+        isOpen={showReportConfig}
+        onClose={() => setShowReportConfig(false)}
+        onConfirm={handleGenerateReport}
+        hasFDS={hasFDS}
+      />
     </div>
   );
 }
